@@ -1,0 +1,60 @@
+define		=
+
+; Integrator stuff
+integrator = sd
+dt = 0.002
+nsteps =  10000000 ; 20 ns
+init-step = 0
+continuation = no
+
+; neighbour search
+cutoff-scheme = verlet
+nst-list = 10
+verlet-buffer-tolerance = 0.005
+ns-type = grid
+
+; Pbc
+pbc = xyz ; xyz or xy
+
+; Vdw
+rvdw = 1.0
+vdwtype = cut-off
+DispCorr = EnerPres
+
+;Electrostatic
+coulombtype = PME
+rcoulomb = 1.0
+pme-order = 4
+fourierspacing = 0.1
+ewald-rtol = 1.e-5
+ewald-geometry = 3d
+
+; T and P
+tc-grps = system
+tau-t = 1.0; ps
+ref-t = 300; K
+pcoupl =  no ;
+
+; Constraints
+constraints = h-bonds
+constraint-algorithm = LINCS
+lincs_iter = 1
+lincs_order = 4
+
+;Generate velocities
+gen_vel		= yes
+gen_temp	= 300
+gen_seed	= -1
+
+; Output control
+nstlog                   = 5000
+nstenergy                = 5000
+nstxout                  = 5000
+nstvout                  = 0
+nstfout                  = 0
+nstxout-compressed       = 0
+
+; COM removal
+comm-mode = linear
+nstcomm = 100
+nstcalcenergy = 500

@@ -1,0 +1,32 @@
+# vim:ft=plumed
+LOAD FILE=../../data/PytorchGNN.so
+
+MOLINFO STRUCTURE=../../data/plumed_topo.pdb PYTHON_BIN=python
+GROUP ATOMS={@mdt:{protein and not type H}} LABEL=g1
+
+phi: TORSION ATOMS=5,7,9,15
+psi: TORSION ATOMS=7,9,15,17
+theta: TORSION ATOMS=6,5,7,9
+
+PYTORCH_GNN ...
+  GROUPA=g1
+  MODEL=../train_1/model.ptc
+  STRUCTURE=../../data/plumed_topo.pdb
+  NL_STRIDE=100
+  FLOAT64
+  LABEL=gnn
+... PYTORCH_GNN
+
+OPES_METAD ...
+  LABEL=opes
+  ARG=gnn.node-0
+  FILE=KERNELS
+  STATE_RFILE=COMPRESSED.KERNELS
+  STATE_WFILE=COMPRESSED.KERNELS
+  STATE_WSTRIDE=1000000
+  PACE=500
+  TEMP=300
+  BARRIER=40
+... OPES_METAD
+
+PRINT ARG=opes.*,gnn.*,phi,psi,theta FILE=colvar STRIDE=100

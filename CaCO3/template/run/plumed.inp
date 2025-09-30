@@ -1,0 +1,62 @@
+# vim:ft=plumed
+UNITS LENGTH=nm
+LOAD FILE=../../../plumed_pytorch_gnn/PytorchGNN.so
+FLUSH STRIDE=2000
+
+MOLINFO STRUCTURE=../../data/plumed_topo.pdb PYTHON_BIN=python
+GROUP ATOMS={@mdt:{type Ca}} LABEL=g1
+GROUP ATOMS={@mdt:{all and not water}} LABEL=g2
+GROUP ATOMS={@mdt:{type O and resname HOH}} LABEL=g3
+GROUP ATOMS={@mdt:{type O and resname CO3}} LABEL=g4
+
+DISTANCE ATOMS=1,2 LABEL=d
+
+COORDINATION ...
+  LABEL=c
+  GROUPA=g1
+  GROUPB=g3
+  SWITCH={RATIONAL R_0=0.1 D_0=0.19 D_MAX=1 NN=6 MM=12}
+  NLIST
+  NL_CUTOFF=1
+  NL_STRIDE=5
+... COORDINATION
+
+
+PYTORCH_GNN ...
+  GROUPA=g2
+  GROUPB=g3
+  SUBGROUPA=g2
+  MODEL=./model.ptc
+  STRUCTURE=../../data/plumed_topo.pdb
+  NL_STRIDE=1
+  BUFFER=0.1
+  KBIAS
+  KBLAMBDA=-1
+  KBEPSILON=1E-7
+  FLOAT64
+  LABEL=gnn
+... PYTORCH_GNN
+
+potential: BIASVALUE ARG=gnn.kbias
+
+UPPER_WALLS ...
+  ARG=d
+  AT=0.8
+  KAPPA=1000.0
+  LABEL=w
+... UPPER_WALLS
+
+OPES_METAD ...
+  LABEL=opes
+  ARG=gnn.node-0
+  FILE=KERNELS
+  STATE_RFILE=COMPRESSED.KERNELS
+  STATE_WFILE=COMPRESSED.KERNELS
+  STATE_WSTRIDE=100000
+  PACE=500
+  TEMP=300
+  BARRIER=25
+  EXTRA_BIAS=w.bias
+... OPES_METAD
+
+PRINT ARG=* STRIDE=1000 FILE=colvar
